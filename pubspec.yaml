@@ -1,7 +1,7 @@
 name: axis_layout
-description: A new Flutter package project.
+description: Horizontal (row) and vertical (column) layout with grow and shrink features.
 version: 0.0.1
-homepage:
+homepage: https://github.com/caduandrade/axis_layout_flutter
 
 environment:
   sdk: ">=2.16.1 <3.0.0"
