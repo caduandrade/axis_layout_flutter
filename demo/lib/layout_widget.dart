@@ -19,15 +19,15 @@ class LayoutWidgetState extends State<LayoutWidget> {
 
   double _mainSize = _maxMainSize;
 
+  ScrollController _scrollController = ScrollController();
+
   @override
   Widget build(BuildContext context) {
-    List<Widget> children = [Expanded(child: _axisLayoutContainer())];
-    if (!widget.settings.scrollable) {
-      children.insert(
-          0,
-          Center(
-              child: SizedBox(width: _maxMainSize, child: _mainSizeSlider())));
-    }
+    List<Widget> children = [
+      Center(child: SizedBox(width: _maxMainSize, child: _mainSizeSlider())),
+      Expanded(child: _axisLayoutContainer())
+    ];
+
     return Container(
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
@@ -37,14 +37,32 @@ class LayoutWidgetState extends State<LayoutWidget> {
   Widget _axisLayoutContainer() {
     Widget axisLayout = _axisLayout();
     if (widget.settings.scrollable) {
-      axisLayout = SingleChildScrollView(
-          child: axisLayout, scrollDirection: widget.settings.axis);
+      axisLayout = Scrollbar(
+          child: SingleChildScrollView(
+              child: axisLayout,
+              scrollDirection: widget.settings.axis,
+              controller: _scrollController),
+          controller: _scrollController,
+          isAlwaysShown: true);
     }
+
+    if (widget.settings.axis == Axis.horizontal) {
+      axisLayout = SizedBox(width: _mainSize, child: axisLayout);
+    } else {
+      axisLayout = SizedBox(height: _mainSize, child: axisLayout);
+    }
+
     return Center(
-        child: Container(
-            child: axisLayout,
-            decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 8))));
+        child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: 400),
+            child: Container(
+                child: Center(
+                    child: Container(
+                        child: axisLayout,
+                        decoration: BoxDecoration(
+                            border:
+                                Border.all(color: Colors.black, width: 8)))),
+                color: Colors.grey[300])));
   }
 
   Widget _axisLayout() {
@@ -52,15 +70,11 @@ class LayoutWidgetState extends State<LayoutWidget> {
     for (int type in widget.types) {
       children.add(ChildBuilder.build(type: type));
     }
-    AxisLayout axisLayout =
-        AxisLayout(axis: Axis.horizontal, children: children);
-    if (widget.settings.scrollable == false) {
-      if (widget.settings.axis == Axis.horizontal) {
-        return SizedBox(width: _mainSize, child: axisLayout);
-      }
-      return SizedBox(height: _mainSize, child: axisLayout);
-    }
-    return axisLayout;
+    return AxisLayout(
+      axis: Axis.horizontal,
+      children: children,
+      crossAlignment: CrossAlignment.center,
+    );
   }
 
   Widget _mainSizeSlider() {

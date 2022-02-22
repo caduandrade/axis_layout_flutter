@@ -10,6 +10,7 @@ class AxisLayoutChild extends ParentDataWidget<AxisLayoutParentData> {
     this.fill = 0,
     this.fit = 0,
     this.shrink = 0,
+    this.shrinkOrder = 0,
     required Widget child,
   }) : super(key: key, child: child);
 
@@ -18,6 +19,7 @@ class AxisLayoutChild extends ParentDataWidget<AxisLayoutParentData> {
 
   /// 0 is no shrink and 1 is full shrink, zero as min size.
   final double shrink;
+  final int shrinkOrder;
 
   @override
   void applyParentData(RenderObject renderObject) {
@@ -34,6 +36,11 @@ class AxisLayoutChild extends ParentDataWidget<AxisLayoutParentData> {
     double validShrink = math.min(1, math.max(0, shrink));
     if (parentData.shrink != validShrink) {
       parentData.shrink = validShrink;
+      needsLayout = true;
+    }
+
+    if (parentData.shrinkOrder != shrinkOrder) {
+      parentData.shrinkOrder = shrinkOrder;
       needsLayout = true;
     }
 

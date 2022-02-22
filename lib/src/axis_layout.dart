@@ -2,7 +2,6 @@ import 'dart:math' as math;
 import 'package:axis_layout/src/cross_alignment.dart';
 import 'package:axis_layout/src/main_alignment.dart';
 import 'package:axis_layout/src/parent_data.dart';
-import 'package:axis_layout/src/shrink_order.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
@@ -16,8 +15,7 @@ class AxisLayout extends MultiChildRenderObjectWidget {
       required List<Widget> children,
       this.clipBehavior = Clip.none,
       this.mainAlignment = MainAlignment.start,
-      this.crossAlignment = CrossAlignment.center,
-      this.shrinkOrder = ShrinkOrder.reverse})
+      this.crossAlignment = CrossAlignment.center})
       : super(key: key, children: children);
 
   final Axis axis;
@@ -28,7 +26,6 @@ class AxisLayout extends MultiChildRenderObjectWidget {
   final Clip clipBehavior;
   final MainAlignment mainAlignment;
   final CrossAlignment crossAlignment;
-  final ShrinkOrder shrinkOrder;
 
   @override
   RenderAxisLayout createRenderObject(BuildContext context) {
@@ -36,8 +33,7 @@ class AxisLayout extends MultiChildRenderObjectWidget {
         direction: axis,
         mainAxisAlignment: mainAlignment,
         crossAxisAlignment: crossAlignment,
-        clipBehavior: clipBehavior,
-        shrinkOrder: shrinkOrder);
+        clipBehavior: clipBehavior);
   }
 
   @override
@@ -50,8 +46,7 @@ class AxisLayout extends MultiChildRenderObjectWidget {
       ..direction = axis
       ..mainAlignment = mainAlignment
       ..crossAlignment = crossAlignment
-      ..clipBehavior = clipBehavior
-      ..shrinkOrder = shrinkOrder;
+      ..clipBehavior = clipBehavior;
   }
 }
 
@@ -68,8 +63,6 @@ class _AxisLayoutElement extends MultiChildRenderObjectElement {
   }
 }
 
-typedef _ChildSizingFunction = double Function(RenderBox child, double extent);
-
 /// [AxisLayout] render.
 ///
 /// Inspired by [RenderFlex].
@@ -78,31 +71,21 @@ class RenderAxisLayout extends RenderBox
         ContainerRenderObjectMixin<RenderBox, AxisLayoutParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, AxisLayoutParentData>,
         DebugOverflowIndicatorMixin {
-  RenderAxisLayout({
-    required Axis direction,
-    required MainAlignment mainAxisAlignment,
-    required CrossAlignment crossAxisAlignment,
-    required Clip clipBehavior,
-    required ShrinkOrder shrinkOrder,
-  })  : _axis = direction,
+  RenderAxisLayout(
+      {required Axis direction,
+      required MainAlignment mainAxisAlignment,
+      required CrossAlignment crossAxisAlignment,
+      required Clip clipBehavior})
+      : _axis = direction,
         _mainAlignment = mainAxisAlignment,
         _crossAlignment = crossAxisAlignment,
-        _clipBehavior = clipBehavior,
-        _shrinkOrder = shrinkOrder;
+        _clipBehavior = clipBehavior;
 
   Axis _axis;
   //TODO
   set direction(Axis value) {
     if (_axis != value) {
       _axis = value;
-      markNeedsLayout();
-    }
-  }
-
-  ShrinkOrder _shrinkOrder;
-  set shrinkOrder(ShrinkOrder value) {
-    if (_shrinkOrder != value) {
-      _shrinkOrder = value;
       markNeedsLayout();
     }
   }
@@ -247,7 +230,6 @@ class RenderAxisLayout extends RenderBox
 
   @override
   Size computeDryLayout(BoxConstraints constraints) {
-    print('##############################');
     final _LayoutSizes sizes = _computeSizes(
       layoutChild: ChildLayoutHelper.dryLayoutChild,
       constraints: constraints,
@@ -291,26 +273,14 @@ class RenderAxisLayout extends RenderBox
     for (RenderBox child in children) {
       Size childSize;
       if (_axis == Axis.horizontal) {
-        if (_crossAlignment == CrossAlignment.stretch) {
-          childSize = layoutChild(
-              child, BoxConstraints.tightFor(height: constraints.maxHeight));
-        } else {
-          childSize = layoutChild(
-              child, BoxConstraints(maxHeight: constraints.maxHeight));
-        }
+        childSize = layoutChild(
+            child, BoxConstraints(maxHeight: constraints.maxHeight));
       } else {
-        if (_crossAlignment == CrossAlignment.stretch) {
-          childSize = layoutChild(
-              child, BoxConstraints.tightFor(width: constraints.maxWidth));
-        } else {
-          childSize = layoutChild(
-              child, BoxConstraints(maxWidth: constraints.maxWidth));
-        }
+        childSize =
+            layoutChild(child, BoxConstraints(maxWidth: constraints.maxWidth));
       }
       double mainChildSize = _getMainSize(childSize);
       totalUsedMainSize += mainChildSize;
-
-      print('mainChildSize: $mainChildSize');
 
       maxUsedCrossSize = math.max(maxUsedCrossSize, _getCrossSize(childSize));
 
@@ -325,46 +295,52 @@ class RenderAxisLayout extends RenderBox
       totalFit += axisLayoutParentData.fit;
     }
 
-    print('totalUsedMainSize: $totalUsedMainSize');
-    print('maxMainSize: $maxMainSize');
-    print('bounded: $bounded');
-
     if (maxMainSize < double.infinity) {
       double totalOverflowSize = math.max(0, totalUsedMainSize - maxMainSize);
 
-      if (totalOverflowSize > 0) {
-        if (_shrinkOrder == ShrinkOrder.reverse) {
-          for (int i = children.length - 1;
-              i >= 0 && totalOverflowSize > 0;
-              i--) {
-            final RenderBox child = children[i];
+      if (totalOverflowSize > 0 && totalShrink > 0) {
+        List<_ShrinkableGroup> shrinkGroups = _ShrinkableGroup.from(children);
+
+        while (shrinkGroups.isNotEmpty && totalOverflowSize > 0) {
+          _ShrinkableGroup shrinkGroup = shrinkGroups.removeAt(0);
+          double overflowSizePerChild =
+              totalOverflowSize / shrinkGroup.children.length;
+          for (RenderBox child in shrinkGroup.children) {
             final double shrink = child.axisLayoutParentData().shrink;
-            if (shrink > 0) {
-              final double childMainSize = _getMainSize(child.size);
-              final double disposableChildMainSize = childMainSize * shrink;
-              if (disposableChildMainSize > totalOverflowSize) {
-                _tightToNewMainSize(
-                    child: child,
-                    size: childMainSize - totalOverflowSize,
-                    layoutChild: layoutChild);
-                totalUsedMainSize -= totalOverflowSize;
-                totalOverflowSize = 0;
-              } else {
-                _tightToNewMainSize(
-                    child: child,
-                    size: childMainSize - disposableChildMainSize,
-                    layoutChild: layoutChild);
-                totalOverflowSize -= disposableChildMainSize;
-                totalUsedMainSize -= disposableChildMainSize;
-              }
+            final double childMainSize = _getMainSize(child.size);
+            final double disposableChildMainSize = childMainSize * shrink;
+            if (disposableChildMainSize > overflowSizePerChild) {
+              _tightToNewMainSize(
+                  child: child,
+                  size: childMainSize - overflowSizePerChild,
+                  layoutChild: layoutChild);
+              totalUsedMainSize -= overflowSizePerChild;
+              totalOverflowSize -= overflowSizePerChild;
+            } else {
+              _tightToNewMainSize(
+                  child: child,
+                  size: childMainSize - disposableChildMainSize,
+                  layoutChild: layoutChild);
+              totalOverflowSize -= disposableChildMainSize;
+              totalUsedMainSize -= disposableChildMainSize;
             }
           }
-        } else if (_shrinkOrder == ShrinkOrder.forward) {
-          throw UnimplementedError(_shrinkOrder.toString());
-        } else if (_shrinkOrder == ShrinkOrder.simultaneous) {
-          throw UnimplementedError(_shrinkOrder.toString());
+        }
+      }
+    }
+
+    if (_crossAlignment == CrossAlignment.stretch) {
+      for (RenderBox child in children) {
+        if (_axis == Axis.horizontal) {
+          layoutChild(
+              child,
+              BoxConstraints.tightFor(
+                  width: child.size.width, height: maxUsedCrossSize));
         } else {
-          throw UnimplementedError(_shrinkOrder.toString());
+          layoutChild(
+              child,
+              BoxConstraints.tightFor(
+                  width: constraints.maxWidth, height: child.size.height));
         }
       }
     }
@@ -484,12 +460,12 @@ class RenderAxisLayout extends RenderBox
 
       child = childParentData.nextSibling;
     }
-
+/*
     if (_axis == Axis.horizontal) {
       size = Size(sizes.mainSize, sizes.crossSize);
     } else {
       size = Size(sizes.crossSize, sizes.mainSize);
-    }
+    }*/
   }
 
   @override
@@ -557,5 +533,38 @@ class _LayoutSizes {
 extension _AxisLayoutParentDataGetter on RenderObject {
   AxisLayoutParentData axisLayoutParentData() {
     return parentData as AxisLayoutParentData;
+  }
+}
+
+class _ShrinkableGroup extends Comparable<_ShrinkableGroup> {
+  _ShrinkableGroup({required this.shrinkOrder});
+
+  final List<RenderBox> children = [];
+  final int shrinkOrder;
+
+  @override
+  int compareTo(_ShrinkableGroup other) {
+    return shrinkOrder.compareTo(other.shrinkOrder);
+  }
+
+  static List<_ShrinkableGroup> from(List<RenderBox> children) {
+    Map<int, _ShrinkableGroup> map = {};
+    for (RenderBox child in children) {
+      AxisLayoutParentData parentData = child.axisLayoutParentData();
+      if (parentData.shrink > 0) {
+        final int shrinkOrder = parentData.shrinkOrder;
+        _ShrinkableGroup group;
+        if (map.containsKey(shrinkOrder)) {
+          group = map[shrinkOrder]!;
+        } else {
+          group = _ShrinkableGroup(shrinkOrder: shrinkOrder);
+          map[shrinkOrder] = group;
+        }
+        group.children.add(child);
+      }
+    }
+    List<_ShrinkableGroup> list = map.values.toList();
+    list.sort();
+    return list;
   }
 }

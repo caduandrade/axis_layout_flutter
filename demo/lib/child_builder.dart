@@ -44,7 +44,11 @@ class ChildBuilder {
                   padding: const EdgeInsets.all(8)),
               onTap: () => onChildTypeClick(type)));
     } else {
-      w = AxisLayoutChild(child: w, shrink: .5);
+      w = AxisLayoutChild(
+        child: w,
+        shrink: .5,
+        shrinkOrder: type,
+      );
     }
     return w;
   }
