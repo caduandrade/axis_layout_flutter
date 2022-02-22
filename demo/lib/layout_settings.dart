@@ -4,12 +4,10 @@ import 'package:flutter/widgets.dart';
 class LayoutSettings {
   LayoutSettings(
       {required this.axis,
-      required this.scrollable,
       required this.mainAlignment,
       required this.crossAlignment});
 
   final Axis axis;
-  final bool scrollable;
   final MainAlignment mainAlignment;
   final CrossAlignment crossAlignment;
 
@@ -21,7 +19,6 @@ class LayoutSettings {
       CrossAlignment? crossAlignment}) {
     return LayoutSettings(
         axis: axis ?? this.axis,
-        scrollable: scrollable ?? this.scrollable,
         mainAlignment: mainAlignment ?? this.mainAlignment,
         crossAlignment: crossAlignment ?? this.crossAlignment);
   }

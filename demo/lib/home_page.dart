@@ -16,7 +16,6 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _children = [];
   LayoutSettings _settings = LayoutSettings(
       axis: Axis.horizontal,
-      scrollable: false,
       mainAlignment: MainAlignment.start,
       crossAlignment: CrossAlignment.center);
 

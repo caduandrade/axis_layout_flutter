@@ -9,35 +9,51 @@ class ChildType {
   final BoxConstraints constraints;
   final Color color;
 
-  Widget buildForCatalog() {
+  Widget _build(bool limited) {
+    Widget? text;
+    if (type == 1) {
+      text = const Text(
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
+    }
+
     return ConstrainedBox(
-        constraints: constraints, child: Container(color: color));
+        constraints:
+            limited ? constraints.copyWith(maxWidth: 100) : constraints,
+        child: Container(color: color, child: text));
+  }
+
+  Widget buildForCatalog() {
+    return _build(true);
   }
 
   Widget buildForLayout({required double shrink, required int shrinkOrder}) {
     return AxisLayoutChild(
-      child: buildForCatalog(),
-      shrink: shrink,
-      shrinkOrder: shrinkOrder,
-    );
+        child: _build(false),
+        shrink: shrink,
+        shrinkOrder: shrinkOrder,
+        fill: 0);
   }
 
   static List<ChildType> types = [
     ChildType(
         type: 1,
+        constraints: const BoxConstraints(),
+        color: Colors.yellow[200]!),
+    ChildType(
+        type: 2,
         constraints: BoxConstraints.tight(const Size(100, 50)),
         color: Colors.blue),
     ChildType(
-        type: 2,
+        type: 3,
         constraints: const BoxConstraints(
             minWidth: 0, maxWidth: 100, minHeight: 100, maxHeight: 100),
         color: Colors.blue[300]!),
     ChildType(
-        type: 3,
+        type: 4,
         constraints: BoxConstraints.tight(const Size(50, 100)),
         color: Colors.green),
     ChildType(
-        type: 4,
+        type: 5,
         constraints: const BoxConstraints(
             minWidth: 0, maxWidth: 100, minHeight: 100, maxHeight: 100),
         color: Colors.green[300]!)

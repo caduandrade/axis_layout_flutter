@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Fill
+
 ## 0.1.0
 
 * Horizontal and vertical layout

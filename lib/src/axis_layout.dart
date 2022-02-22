@@ -13,7 +13,7 @@ class AxisLayout extends MultiChildRenderObjectWidget {
       {Key? key,
       required this.axis,
       required List<Widget> children,
-      this.clipBehavior = Clip.none,
+      this.clipBehavior = Clip.hardEdge,
       this.mainAlignment = MainAlignment.start,
       this.crossAlignment = CrossAlignment.center})
       : super(key: key, children: children);
@@ -212,22 +212,6 @@ class RenderAxisLayout extends RenderBox
     }
   }
 
-  void _tightToNewMainSize(
-      {required RenderBox child,
-      required double size,
-      required ChildLayouter layoutChild}) {
-    switch (_axis) {
-      case Axis.horizontal:
-        layoutChild(child,
-            BoxConstraints.tightFor(width: size, height: child.size.height));
-        break;
-      case Axis.vertical:
-        layoutChild(child,
-            BoxConstraints.tightFor(width: child.size.width, height: size));
-        break;
-    }
-  }
-
   @override
   Size computeDryLayout(BoxConstraints constraints) {
     final _LayoutSizes sizes = _computeSizes(
@@ -254,22 +238,16 @@ class RenderAxisLayout extends RenderBox
     List<RenderBox> children = [];
     visitChildren((child) => children.add(child as RenderBox));
 
-    final bool canGrow =
-        _axis == Axis.horizontal && constraints.hasInfiniteWidth ||
-            _axis == Axis.vertical && constraints.hasInfiniteHeight;
-    final bool bounded =
-        _axis == Axis.horizontal && constraints.hasBoundedWidth ||
-            _axis == Axis.vertical && constraints.hasBoundedHeight;
-
     final double maxMainSize =
         _axis == Axis.horizontal ? constraints.maxWidth : constraints.maxHeight;
 
+    final double maxCrossSize =
+        _axis == Axis.horizontal ? constraints.maxHeight : constraints.maxWidth;
+
     double totalFill = 0;
     double totalShrink = 0;
-    double totalFit = 0;
     double maxUsedCrossSize = 0;
     double totalUsedMainSize = 0;
-    double shrinkableSize = 0;
     for (RenderBox child in children) {
       Size childSize;
       if (_axis == Axis.horizontal) {
@@ -286,44 +264,63 @@ class RenderAxisLayout extends RenderBox
 
       AxisLayoutParentData axisLayoutParentData = child.axisLayoutParentData();
 
-      if (axisLayoutParentData.shrink > 0) {
-        shrinkableSize += mainChildSize;
-      }
-
       totalFill += axisLayoutParentData.fill;
       totalShrink += axisLayoutParentData.shrink;
-      totalFit += axisLayoutParentData.fit;
     }
 
     if (maxMainSize < double.infinity) {
-      double totalOverflowSize = math.max(0, totalUsedMainSize - maxMainSize);
+      if (totalShrink > 0) {
+        double totalOverflowSize = math.max(0, totalUsedMainSize - maxMainSize);
+        if (totalOverflowSize > 0) {
+          List<_ShrinkableGroup> shrinkGroups = _ShrinkableGroup.from(children);
 
-      if (totalOverflowSize > 0 && totalShrink > 0) {
-        List<_ShrinkableGroup> shrinkGroups = _ShrinkableGroup.from(children);
-
-        while (shrinkGroups.isNotEmpty && totalOverflowSize > 0) {
-          _ShrinkableGroup shrinkGroup = shrinkGroups.removeAt(0);
-          double overflowSizePerChild =
-              totalOverflowSize / shrinkGroup.children.length;
-          for (RenderBox child in shrinkGroup.children) {
-            final double shrink = child.axisLayoutParentData().shrink;
-            final double childMainSize = _getMainSize(child.size);
-            final double disposableChildMainSize = childMainSize * shrink;
-            if (disposableChildMainSize > overflowSizePerChild) {
-              _tightToNewMainSize(
-                  child: child,
-                  size: childMainSize - overflowSizePerChild,
-                  layoutChild: layoutChild);
-              totalUsedMainSize -= overflowSizePerChild;
-              totalOverflowSize -= overflowSizePerChild;
-            } else {
-              _tightToNewMainSize(
-                  child: child,
-                  size: childMainSize - disposableChildMainSize,
-                  layoutChild: layoutChild);
-              totalOverflowSize -= disposableChildMainSize;
-              totalUsedMainSize -= disposableChildMainSize;
+          while (shrinkGroups.isNotEmpty && totalOverflowSize > 0) {
+            _ShrinkableGroup shrinkGroup = shrinkGroups.removeAt(0);
+            double overflowSizePerChild =
+                totalOverflowSize / shrinkGroup.children.length;
+            for (RenderBox child in shrinkGroup.children) {
+              final double shrink = child.axisLayoutParentData().shrink;
+              final double childMainSize = _getMainSize(child.size);
+              final double disposableChildMainSize = childMainSize * shrink;
+              if (disposableChildMainSize > overflowSizePerChild) {
+                _tightToNewMainSize(
+                    child: child,
+                    size: childMainSize - overflowSizePerChild,
+                    maxCrossSize: maxCrossSize,
+                    layoutChild: layoutChild);
+                totalUsedMainSize -= overflowSizePerChild;
+                totalOverflowSize -= overflowSizePerChild;
+              } else {
+                _tightToNewMainSize(
+                    child: child,
+                    size: childMainSize - disposableChildMainSize,
+                    maxCrossSize: maxCrossSize,
+                    layoutChild: layoutChild);
+                totalOverflowSize -= disposableChildMainSize;
+                totalUsedMainSize -= disposableChildMainSize;
+              }
             }
+          }
+          maxUsedCrossSize = 0;
+          for (RenderBox child in children) {
+            maxUsedCrossSize =
+                math.max(maxUsedCrossSize, _getCrossSize(child.size));
+          }
+        }
+      }
+
+      if (totalFill > 0) {
+        double remainingMainSize = math.max(0, maxMainSize - totalUsedMainSize);
+        if (remainingMainSize > 0) {
+          double widthPerFill = remainingMainSize / totalFill;
+          for (RenderBox child in children) {
+            final double fill = child.axisLayoutParentData().fill;
+            final double extraMainSize = widthPerFill * fill;
+            final double newChildMainSize =
+                _getMainSize(child.size) + extraMainSize;
+            _tightToNewMainSize(
+                child: child, size: newChildMainSize, layoutChild: layoutChild);
+            totalUsedMainSize += extraMainSize;
           }
         }
       }
@@ -359,6 +356,34 @@ class RenderAxisLayout extends RenderBox
       crossSize: maxUsedCrossSize,
       usedSize: totalUsedMainSize,
     );
+  }
+
+  void _tightToNewMainSize(
+      {required RenderBox child,
+      required double size,
+      double? maxCrossSize,
+      required ChildLayouter layoutChild}) {
+    if (_axis == Axis.horizontal) {
+      if (maxCrossSize != null) {
+        layoutChild(
+            child,
+            BoxConstraints(
+                minWidth: size, maxWidth: size, maxHeight: maxCrossSize));
+      } else {
+        layoutChild(child,
+            BoxConstraints.tightFor(width: size, height: child.size.height));
+      }
+    } else {
+      if (maxCrossSize != null) {
+        layoutChild(
+            child,
+            BoxConstraints(
+                maxWidth: maxCrossSize, minHeight: size, maxHeight: size));
+      } else {
+        layoutChild(child,
+            BoxConstraints.tightFor(width: child.size.width, height: size));
+      }
+    }
   }
 
   @override

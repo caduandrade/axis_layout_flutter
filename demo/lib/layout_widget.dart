@@ -24,14 +24,23 @@ class LayoutWidgetState extends State<LayoutWidget> {
 
   double _mainSize = _maxMainSize;
 
+  bool _scrollable = false;
+
   final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [
       Center(
-          child: Padding(
-              child: _clearButton(), padding: const EdgeInsets.only(top: 16))),
+          child: Container(
+              child: Row(children: [
+                const SizedBox(width: 16),
+                _clearButton(),
+                SizedBox(width: 32),
+                const Text('Scrollable'),
+                _scrollCheck()
+              ]),
+              padding: const EdgeInsets.only(top: 16))),
       Center(
           child: Padding(
               child: SizedBox(width: _maxMainSize, child: _mainSizeSlider()),
@@ -47,7 +56,7 @@ class LayoutWidgetState extends State<LayoutWidget> {
 
   Widget _axisLayoutContainer() {
     Widget axisLayout = _axisLayout();
-    if (widget.settings.scrollable) {
+    if (_scrollable) {
       axisLayout = Scrollbar(
           child: SingleChildScrollView(
               child: axisLayout,
@@ -84,6 +93,16 @@ class LayoutWidgetState extends State<LayoutWidget> {
   Widget _clearButton() {
     return ElevatedButton(
         onPressed: widget._onClear, child: const Text('Clear'));
+  }
+
+  Widget _scrollCheck() {
+    return Checkbox(value: _scrollable, onChanged: _onScrollableValueChange);
+  }
+
+  void _onScrollableValueChange(bool? value) {
+    setState(() {
+      _scrollable = value!;
+    });
   }
 
   Widget _mainSizeSlider() {
