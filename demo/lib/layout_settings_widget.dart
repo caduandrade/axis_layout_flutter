@@ -1,25 +1,26 @@
 import 'package:axis_layout/axis_layout.dart';
-import 'package:demo/settings.dart';
+import 'package:demo/layout_settings.dart';
 import 'package:flutter/material.dart';
 
-typedef OnSettingsChange = void Function(Settings settings);
+typedef OnLayoutSettingsChange = void Function(LayoutSettings settings);
 
-class SettingsWidget extends StatefulWidget {
-  const SettingsWidget(
+class LayoutSettingsWidget extends StatefulWidget {
+  const LayoutSettingsWidget(
       {Key? key, required this.settings, required this.onSettingsChange})
       : super(key: key);
 
-  final OnSettingsChange onSettingsChange;
-  final Settings settings;
+  final OnLayoutSettingsChange onSettingsChange;
+  final LayoutSettings settings;
 
   @override
-  State<StatefulWidget> createState() => SettingsWidgetState();
+  State<StatefulWidget> createState() => LayoutSettingsWidgetState();
 }
 
-class SettingsWidgetState extends State<SettingsWidget> {
+class LayoutSettingsWidgetState extends State<LayoutSettingsWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
+        width: 200,
         child: SingleChildScrollView(child: _menu()),
         decoration: BoxDecoration(
             color: Colors.white,
@@ -28,26 +29,24 @@ class SettingsWidgetState extends State<SettingsWidget> {
   }
 
   Widget _menu() {
-
     List<Widget> children = [
-      const ListTile(title: Text('Axis')),
+      const ListTile(title: Text('Layout settings')),
+      const ListTile(title: Text('Axis'), dense: true),
       _horizontalRadio(),
       _verticalRadio(),
-      const ListTile(title: Text('MainAlignment')),
+      const ListTile(title: Text('MainAlignment'), dense: true),
     ];
 
-    for(MainAlignment mainAlignment in MainAlignment.values) {
+    for (MainAlignment mainAlignment in MainAlignment.values) {
       children.add(_mainAlignmentRadio(mainAlignment));
     }
 
-    children.add(const ListTile(title: Text('CrossAlignment')));
-    for(CrossAlignment crossAlignment in CrossAlignment.values) {
+    children.add(const ListTile(title: Text('CrossAlignment'), dense: true));
+    for (CrossAlignment crossAlignment in CrossAlignment.values) {
       children.add(_crossAlignmentRadio(crossAlignment));
     }
 
-    return Column(
-      children: children
-    );
+    return Column(children: children);
   }
 
   Widget _horizontalRadio() {
@@ -64,8 +63,7 @@ class SettingsWidgetState extends State<SettingsWidget> {
         value: axis,
         groupValue: widget.settings.axis,
         onChanged: _onAxisChange,
-        dense: true
-    );
+        dense: true);
   }
 
   Widget _mainAlignmentRadio(MainAlignment value) {
@@ -74,8 +72,7 @@ class SettingsWidgetState extends State<SettingsWidget> {
         value: value,
         groupValue: widget.settings.mainAlignment,
         onChanged: _onMainAlignmentChange,
-        dense: true
-    );
+        dense: true);
   }
 
   Widget _crossAlignmentRadio(CrossAlignment value) {
@@ -84,23 +81,22 @@ class SettingsWidgetState extends State<SettingsWidget> {
         value: value,
         groupValue: widget.settings.crossAlignment,
         onChanged: _onCrossAlignmentChange,
-        dense: true
-    );
+        dense: true);
   }
 
   void _onAxisChange(Axis? value) {
     _notifySettingChange(widget.settings.copyWith(axis: value));
   }
 
-  void _onMainAlignmentChange(MainAlignment? value){
+  void _onMainAlignmentChange(MainAlignment? value) {
     _notifySettingChange(widget.settings.copyWith(mainAlignment: value));
   }
 
-  void _onCrossAlignmentChange(CrossAlignment? value){
+  void _onCrossAlignmentChange(CrossAlignment? value) {
     _notifySettingChange(widget.settings.copyWith(crossAlignment: value));
   }
-  
-  void _notifySettingChange(Settings settings) {
+
+  void _notifySettingChange(LayoutSettings settings) {
     widget.onSettingsChange(settings);
   }
 }

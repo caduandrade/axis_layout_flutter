@@ -1,14 +1,19 @@
 import 'package:axis_layout/axis_layout.dart';
-import 'package:demo/child_builder.dart';
-import 'package:demo/settings.dart';
+import 'package:demo/layout_settings.dart';
 import 'package:flutter/material.dart';
 
 class LayoutWidget extends StatefulWidget {
-  const LayoutWidget({Key? key, required this.types, required this.settings})
-      : super(key: key);
+  const LayoutWidget(
+      {Key? key,
+      required this.children,
+      required this.settings,
+      required VoidCallback onClear})
+      : _onClear = onClear,
+        super(key: key);
 
-  final List<int> types;
-  final Settings settings;
+  final List<Widget> children;
+  final LayoutSettings settings;
+  final VoidCallback _onClear;
 
   @override
   State<StatefulWidget> createState() => LayoutWidgetState();
@@ -24,7 +29,13 @@ class LayoutWidgetState extends State<LayoutWidget> {
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [
-      Center(child: SizedBox(width: _maxMainSize, child: _mainSizeSlider())),
+      Center(
+          child: Padding(
+              child: _clearButton(), padding: const EdgeInsets.only(top: 16))),
+      Center(
+          child: Padding(
+              child: SizedBox(width: _maxMainSize, child: _mainSizeSlider()),
+              padding: const EdgeInsets.only(top: 16, bottom: 16))),
       Expanded(child: _axisLayoutContainer())
     ];
 
@@ -56,26 +67,23 @@ class LayoutWidgetState extends State<LayoutWidget> {
         child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 400),
             child: Container(
-                child: Center(
-                    child: Container(
-                        child: axisLayout,
-                        decoration: BoxDecoration(
-                            border:
-                                Border.all(color: Colors.black, width: 8)))),
-                color: Colors.grey[300])));
+                child: axisLayout,
+                decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black, width: 8)))));
   }
 
   Widget _axisLayout() {
-    List<Widget> children = [];
-    for (int type in widget.types) {
-      children.add(ChildBuilder.build(type: type));
-    }
     return AxisLayout(
       axis: widget.settings.axis,
-      children: children,
+      children: widget.children,
       mainAlignment: widget.settings.mainAlignment,
       crossAlignment: widget.settings.crossAlignment,
     );
+  }
+
+  Widget _clearButton() {
+    return ElevatedButton(
+        onPressed: widget._onClear, child: const Text('Clear'));
   }
 
   Widget _mainSizeSlider() {

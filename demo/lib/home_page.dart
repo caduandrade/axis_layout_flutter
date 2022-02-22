@@ -1,8 +1,8 @@
 import 'package:axis_layout/axis_layout.dart';
 import 'package:demo/catalog_widget.dart';
 import 'package:demo/layout_widget.dart';
-import 'package:demo/settings.dart';
-import 'package:demo/settings_widget.dart';
+import 'package:demo/layout_settings.dart';
+import 'package:demo/layout_settings_widget.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -13,8 +13,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<int> _types = [];
-  Settings _settings = Settings(axis: Axis.horizontal, scrollable: false, mainAlignment: MainAlignment.start, crossAlignment: CrossAlignment.center);
+  final List<Widget> _children = [];
+  LayoutSettings _settings = LayoutSettings(
+      axis: Axis.horizontal,
+      scrollable: false,
+      mainAlignment: MainAlignment.start,
+      crossAlignment: CrossAlignment.center);
 
   @override
   Widget build(BuildContext context) {
@@ -28,44 +32,32 @@ class _HomePageState extends State<HomePage> {
   Widget _body(BuildContext context) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      const double settingsFinalX = 300;
-      const double catalogFinalY = 200;
-
-      return Stack(children: [
-        Positioned(
-            top: catalogFinalY,
-            left: settingsFinalX,
-            right: 0,
-            bottom: 0,
-            child: LayoutWidget(types: _types, settings: _settings)),
-        Positioned(
-            top: 0,
-            bottom: 0,
-            left: 0,
-            child: SizedBox(
-                child: SettingsWidget(
-                    settings: _settings, onSettingsChange: _onSettingsChange),
-                width: settingsFinalX)),
-        Positioned(
-            top: 0,
-            left: settingsFinalX,
-            right: 0,
-            child: SizedBox(
-                child: CatalogWidget(onChildTypeClick: _onChildTypeClick),
-                height: catalogFinalY))
-      ]);
+      return Row(children: [
+        LayoutSettingsWidget(
+            settings: _settings, onSettingsChange: _onSettingsChange),
+        Expanded(
+            child: LayoutWidget(
+                children: _children, settings: _settings, onClear: _onClear)),
+        CatalogWidget(onChildTypeClick: _onChildTypeClick)
+      ], crossAxisAlignment: CrossAxisAlignment.stretch);
     });
   }
 
-  void _onSettingsChange(Settings settings) {
+  void _onClear() {
+    setState(() {
+      _children.clear();
+    });
+  }
+
+  void _onSettingsChange(LayoutSettings settings) {
     setState(() {
       _settings = settings;
     });
   }
 
-  void _onChildTypeClick(int type) {
+  void _onChildTypeClick(Widget child) {
     setState(() {
-      _types.add(type);
+      _children.add(child);
     });
   }
 }
