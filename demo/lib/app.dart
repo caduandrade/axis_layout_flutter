@@ -9,6 +9,7 @@ class AxisLayoutDemoApp extends StatelessWidget {
     return MaterialApp(
       title: 'Axis Layout Demo',
       theme: ThemeData(
+        radioTheme: const RadioThemeData( materialTapTargetSize: MaterialTapTargetSize.shrinkWrap),
         primarySwatch: Colors.blue,
       ),
       home: const HomePage(),

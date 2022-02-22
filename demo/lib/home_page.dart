@@ -1,3 +1,4 @@
+import 'package:axis_layout/axis_layout.dart';
 import 'package:demo/catalog_widget.dart';
 import 'package:demo/layout_widget.dart';
 import 'package:demo/settings.dart';
@@ -12,8 +13,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<int> _types = [];
-  Settings _settings = Settings(axis: Axis.horizontal, scrollable: false);
+  final List<int> _types = [];
+  Settings _settings = Settings(axis: Axis.horizontal, scrollable: false, mainAlignment: MainAlignment.start, crossAlignment: CrossAlignment.center);
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +42,10 @@ class _HomePageState extends State<HomePage> {
             top: 0,
             bottom: 0,
             left: 0,
-            child: SizedBox(child: SettingsWidget(), width: settingsFinalX)),
+            child: SizedBox(
+                child: SettingsWidget(
+                    settings: _settings, onSettingsChange: _onSettingsChange),
+                width: settingsFinalX)),
         Positioned(
             top: 0,
             left: settingsFinalX,
@@ -50,6 +54,12 @@ class _HomePageState extends State<HomePage> {
                 child: CatalogWidget(onChildTypeClick: _onChildTypeClick),
                 height: catalogFinalY))
       ]);
+    });
+  }
+
+  void _onSettingsChange(Settings settings) {
+    setState(() {
+      _settings = settings;
     });
   }
 

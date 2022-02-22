@@ -340,7 +340,7 @@ class RenderAxisLayout extends RenderBox
           layoutChild(
               child,
               BoxConstraints.tightFor(
-                  width: constraints.maxWidth, height: child.size.height));
+                  width: maxUsedCrossSize, height: child.size.height));
         }
       }
     }

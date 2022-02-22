@@ -19,7 +19,7 @@ class LayoutWidgetState extends State<LayoutWidget> {
 
   double _mainSize = _maxMainSize;
 
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,7 @@ class LayoutWidgetState extends State<LayoutWidget> {
 
     return Center(
         child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: 400),
+            constraints: const BoxConstraints(maxHeight: 400),
             child: Container(
                 child: Center(
                     child: Container(
@@ -71,9 +71,10 @@ class LayoutWidgetState extends State<LayoutWidget> {
       children.add(ChildBuilder.build(type: type));
     }
     return AxisLayout(
-      axis: Axis.horizontal,
+      axis: widget.settings.axis,
       children: children,
-      crossAlignment: CrossAlignment.center,
+      mainAlignment: widget.settings.mainAlignment,
+      crossAlignment: widget.settings.crossAlignment,
     );
   }
 

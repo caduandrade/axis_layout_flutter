@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 typedef OnChildTypeClick = void Function(int type);
 
 class ChildBuilder {
-  static const int types = 2;
+  static const int types = 4;
 
   static Widget build({required int type, OnChildTypeClick? onChildTypeClick}) {
     switch (type) {
@@ -20,6 +20,19 @@ class ChildBuilder {
             constraints: const BoxConstraints(
                 minWidth: 0, maxWidth: 100, minHeight: 100, maxHeight: 100),
             color: Colors.blue[300]!,
+            onChildTypeClick: onChildTypeClick);
+      case 3:
+        return _build(
+            type: type,
+            constraints: BoxConstraints.tight(const Size(50, 100)),
+            color: Colors.green,
+            onChildTypeClick: onChildTypeClick);
+      case 4:
+        return _build(
+            type: type,
+            constraints: const BoxConstraints(
+                minWidth: 0, maxWidth: 100, minHeight: 100, maxHeight: 100),
+            color: Colors.green[300]!,
             onChildTypeClick: onChildTypeClick);
     }
     return const Text('?');
