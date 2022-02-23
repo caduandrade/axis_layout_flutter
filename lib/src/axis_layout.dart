@@ -244,63 +244,88 @@ class RenderAxisLayout extends RenderBox
     final double maxCrossSize =
         _axis == Axis.horizontal ? constraints.maxHeight : constraints.maxWidth;
 
-    double totalFill = 0;
+    double totalExpand = 0;
     double totalShrink = 0;
     double maxUsedCrossSize = 0;
     double totalUsedMainSize = 0;
     for (RenderBox child in children) {
+      final AxisLayoutParentData parentData = child.axisLayoutParentData();
       Size childSize;
       if (_axis == Axis.horizontal) {
-        childSize = layoutChild(
-            child, BoxConstraints(maxHeight: constraints.maxHeight));
+        if (parentData.expand > 0) {
+          childSize = layoutChild(
+              child,
+              BoxConstraints(
+                  minWidth: 0, maxWidth: 0, maxHeight: constraints.maxHeight));
+        } else {
+          childSize = layoutChild(
+              child, BoxConstraints(maxHeight: constraints.maxHeight));
+        }
       } else {
-        childSize =
-            layoutChild(child, BoxConstraints(maxWidth: constraints.maxWidth));
+        if (parentData.expand > 0) {
+          childSize = layoutChild(
+              child,
+              BoxConstraints(
+                  maxWidth: constraints.maxWidth, minHeight: 0, maxHeight: 0));
+        } else {
+          childSize = layoutChild(
+              child, BoxConstraints(maxWidth: constraints.maxWidth));
+        }
       }
       double mainChildSize = _getMainSize(childSize);
       totalUsedMainSize += mainChildSize;
 
       maxUsedCrossSize = math.max(maxUsedCrossSize, _getCrossSize(childSize));
 
-      AxisLayoutParentData axisLayoutParentData = child.axisLayoutParentData();
-
-      totalFill += axisLayoutParentData.fill;
-      totalShrink += axisLayoutParentData.shrink;
+      totalExpand += parentData.expand;
+      if (parentData.expand == 0) {
+        totalShrink += parentData.shrink;
+      }
     }
 
     if (maxMainSize < double.infinity) {
       if (totalShrink > 0) {
         double totalOverflowSize = math.max(0, totalUsedMainSize - maxMainSize);
         if (totalOverflowSize > 0) {
-          List<_ShrinkableGroup> shrinkGroups = _ShrinkableGroup.from(children);
-
-          while (shrinkGroups.isNotEmpty && totalOverflowSize > 0) {
-            _ShrinkableGroup shrinkGroup = shrinkGroups.removeAt(0);
-            double overflowSizePerChild =
-                totalOverflowSize / shrinkGroup.children.length;
-            for (RenderBox child in shrinkGroup.children) {
-              final double shrink = child.axisLayoutParentData().shrink;
-              final double childMainSize = _getMainSize(child.size);
-              final double disposableChildMainSize = childMainSize * shrink;
-              if (disposableChildMainSize > overflowSizePerChild) {
-                _tightToNewMainSize(
-                    child: child,
-                    size: childMainSize - overflowSizePerChild,
-                    maxCrossSize: maxCrossSize,
-                    layoutChild: layoutChild);
-                totalUsedMainSize -= overflowSizePerChild;
-                totalOverflowSize -= overflowSizePerChild;
-              } else {
-                _tightToNewMainSize(
-                    child: child,
-                    size: childMainSize - disposableChildMainSize,
-                    maxCrossSize: maxCrossSize,
-                    layoutChild: layoutChild);
-                totalOverflowSize -= disposableChildMainSize;
-                totalUsedMainSize -= disposableChildMainSize;
-              }
+          List<RenderBox> shrinkableChildren = [];
+          for (RenderBox child in children) {
+            AxisLayoutParentData parentData = child.axisLayoutParentData();
+            if (parentData.expand == 0 && parentData.shrink > 0) {
+              shrinkableChildren.add(child);
             }
           }
+          shrinkableChildren.sort((a, b) => a
+              .axisLayoutParentData()
+              .shrinkOrder
+              .compareTo(b.axisLayoutParentData().shrinkOrder));
+
+          for (int i = 0;
+              i < shrinkableChildren.length && totalOverflowSize > 0;
+              i++) {
+            RenderBox child = shrinkableChildren[i];
+            final double shrink = child.axisLayoutParentData().shrink;
+            final double childMainSize = _getMainSize(child.size);
+            final double disposableChildMainSize = childMainSize * shrink;
+
+            if (disposableChildMainSize > totalOverflowSize) {
+              _tightToNewMainSize(
+                  child: child,
+                  size: childMainSize - totalOverflowSize,
+                  maxCrossSize: maxCrossSize,
+                  layoutChild: layoutChild);
+              totalUsedMainSize -= totalOverflowSize;
+              totalOverflowSize = 0;
+            } else {
+              _tightToNewMainSize(
+                  child: child,
+                  size: childMainSize - disposableChildMainSize,
+                  maxCrossSize: maxCrossSize,
+                  layoutChild: layoutChild);
+              totalOverflowSize -= disposableChildMainSize;
+              totalUsedMainSize -= disposableChildMainSize;
+            }
+          }
+
           maxUsedCrossSize = 0;
           for (RenderBox child in children) {
             maxUsedCrossSize =
@@ -309,13 +334,13 @@ class RenderAxisLayout extends RenderBox
         }
       }
 
-      if (totalFill > 0) {
+      if (totalExpand > 0) {
         double remainingMainSize = math.max(0, maxMainSize - totalUsedMainSize);
         if (remainingMainSize > 0) {
-          double widthPerFill = remainingMainSize / totalFill;
+          double widthPerExpand = remainingMainSize / totalExpand;
           for (RenderBox child in children) {
-            final double fill = child.axisLayoutParentData().fill;
-            final double extraMainSize = widthPerFill * fill;
+            final double expand = child.axisLayoutParentData().expand;
+            final double extraMainSize = widthPerExpand * expand;
             final double newChildMainSize =
                 _getMainSize(child.size) + extraMainSize;
             _tightToNewMainSize(
@@ -415,6 +440,7 @@ class RenderAxisLayout extends RenderBox
         crossSize = size.width;
         break;
     }
+
     final double actualSizeDelta = actualSize - usedSize;
     //_overflow = math.max(0.0, -actualSizeDelta);
     final double remainingSpace = math.max(0.0, actualSizeDelta);
@@ -449,8 +475,7 @@ class RenderAxisLayout extends RenderBox
 
     // Position elements
     double childMainPosition = leadingSpace;
-    RenderBox? child = firstChild;
-    while (child != null) {
+    for (RenderBox child in children) {
       final AxisLayoutParentData childParentData =
           child.parentData! as AxisLayoutParentData;
       final double childCrossPosition;
@@ -482,10 +507,8 @@ class RenderAxisLayout extends RenderBox
       }
 
       childMainPosition += _getMainSize(child.size) + betweenSpace;
-
-      child = childParentData.nextSibling;
     }
-/*
+    /*
     if (_axis == Axis.horizontal) {
       size = Size(sizes.mainSize, sizes.crossSize);
     } else {
@@ -505,7 +528,7 @@ class RenderAxisLayout extends RenderBox
       defaultPaint(context, offset);
       return;
     }
-*/
+    */
     // There's no point in drawing the children if we're empty.
     if (size.isEmpty) {
       return;
@@ -558,38 +581,5 @@ class _LayoutSizes {
 extension _AxisLayoutParentDataGetter on RenderObject {
   AxisLayoutParentData axisLayoutParentData() {
     return parentData as AxisLayoutParentData;
-  }
-}
-
-class _ShrinkableGroup extends Comparable<_ShrinkableGroup> {
-  _ShrinkableGroup({required this.shrinkOrder});
-
-  final List<RenderBox> children = [];
-  final int shrinkOrder;
-
-  @override
-  int compareTo(_ShrinkableGroup other) {
-    return shrinkOrder.compareTo(other.shrinkOrder);
-  }
-
-  static List<_ShrinkableGroup> from(List<RenderBox> children) {
-    Map<int, _ShrinkableGroup> map = {};
-    for (RenderBox child in children) {
-      AxisLayoutParentData parentData = child.axisLayoutParentData();
-      if (parentData.shrink > 0) {
-        final int shrinkOrder = parentData.shrinkOrder;
-        _ShrinkableGroup group;
-        if (map.containsKey(shrinkOrder)) {
-          group = map[shrinkOrder]!;
-        } else {
-          group = _ShrinkableGroup(shrinkOrder: shrinkOrder);
-          map[shrinkOrder] = group;
-        }
-        group.children.add(child);
-      }
-    }
-    List<_ShrinkableGroup> list = map.values.toList();
-    list.sort();
-    return list;
   }
 }

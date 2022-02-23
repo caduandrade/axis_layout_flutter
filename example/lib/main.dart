@@ -29,19 +29,52 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  double _width = 200;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title: const Text('Axis Layout Demo'),
         ),
-        body: Center(child: _axisLayout()));
+        body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Center(child: SizedBox(width: 400, child: _slider())),
+          Center(
+              child: Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(color: Colors.red, width: 4)),
+                  child: SizedBox(width: _width, child: _axisLayout())))
+        ]));
+  }
+
+  Widget _slider() {
+    return Slider(
+        min: 0,
+        max: 400,
+        value: _width,
+        onChanged: (value) {
+          setState(() {
+            _width = value;
+          });
+        });
   }
 
   Widget _axisLayout() {
-    return AxisLayout(axis: Axis.horizontal, children: const [
-      AxisLayoutChild(child: Text('Axis Layout'), shrink: .5),
-      Text('Axis Layout')
+    return AxisLayout(axis: Axis.horizontal, children: [
+      AxisLayoutChild(
+          child: Container(width: 100, height: 50, color: Colors.blue),
+          shrink: 1),
+      AxisLayoutChild(
+          child: Container(width: 100, height: 50, color: Colors.orange)),
+      AxisLayoutChild(
+          child: Container(height: 50, color: Colors.green), expand: 1)
+    ]);
+  }
+
+  Widget _row() {
+    return Row(children: [
+      Container(width: 100, height: 50, color: Colors.blue),
+      Container(width: 100, height: 50, color: Colors.orange),
+      Expanded(child: Container(height: 50, color: Colors.green))
     ]);
   }
 }

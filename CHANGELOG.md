@@ -1,3 +1,7 @@
+## 0.3.0
+
+* Fill feature replaced by expand feature
+
 ## 0.2.0
 
 * Fill

@@ -31,7 +31,7 @@ class ChildType {
         child: _build(false),
         shrink: shrink,
         shrinkOrder: shrinkOrder,
-        fill: 0);
+        expand: type == 3 ? 1 : 0);
   }
 
   static List<ChildType> types = [
