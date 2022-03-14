@@ -13,12 +13,16 @@ class AxisLayout extends MultiChildRenderObjectWidget {
       {Key? key,
       required this.axis,
       required List<Widget> children,
-      this.clipBehavior = Clip.hardEdge,
+      this.clipBehavior = Clip.none,
+      this.antiAliasingBugWorkaround = false,
       this.mainAlignment = MainAlignment.start,
       this.crossAlignment = CrossAlignment.center})
       : super(key: key, children: children);
 
   final Axis axis;
+
+  /// Enables a workaround for https://github.com/flutter/flutter/issues/14288
+  final bool antiAliasingBugWorkaround;
 
   /// {@macro flutter.material.Material.clipBehavior}
   ///
@@ -33,7 +37,8 @@ class AxisLayout extends MultiChildRenderObjectWidget {
         direction: axis,
         mainAxisAlignment: mainAlignment,
         crossAxisAlignment: crossAlignment,
-        clipBehavior: clipBehavior);
+        clipBehavior: clipBehavior,
+        antiAliasingBugWorkaround: antiAliasingBugWorkaround);
   }
 
   @override
@@ -46,7 +51,8 @@ class AxisLayout extends MultiChildRenderObjectWidget {
       ..direction = axis
       ..mainAlignment = mainAlignment
       ..crossAlignment = crossAlignment
-      ..clipBehavior = clipBehavior;
+      ..clipBehavior = clipBehavior
+      ..antiAliasingBugWorkaround = antiAliasingBugWorkaround;
   }
 }
 
@@ -75,11 +81,13 @@ class RenderAxisLayout extends RenderBox
       {required Axis direction,
       required MainAlignment mainAxisAlignment,
       required CrossAlignment crossAxisAlignment,
-      required Clip clipBehavior})
+      required Clip clipBehavior,
+      required bool antiAliasingBugWorkaround})
       : _axis = direction,
         _mainAlignment = mainAxisAlignment,
         _crossAlignment = crossAxisAlignment,
-        _clipBehavior = clipBehavior;
+        _clipBehavior = clipBehavior,
+        _antiAliasingBugWorkaround = antiAliasingBugWorkaround;
 
   Axis _axis;
   //TODO
@@ -102,6 +110,14 @@ class RenderAxisLayout extends RenderBox
   set crossAlignment(CrossAlignment value) {
     if (_crossAlignment != value) {
       _crossAlignment = value;
+      markNeedsLayout();
+    }
+  }
+
+  bool _antiAliasingBugWorkaround;
+  set antiAliasingBugWorkaround(bool value) {
+    if (_antiAliasingBugWorkaround != value) {
+      _antiAliasingBugWorkaround = value;
       markNeedsLayout();
     }
   }
@@ -219,17 +235,19 @@ class RenderAxisLayout extends RenderBox
       constraints: constraints,
     );
 
+    /*
     if (_axis == Axis.horizontal) {
       return Size(sizes.mainSize, sizes.crossSize);
     }
     return Size(sizes.crossSize, sizes.mainSize);
-    /*
+     */
+
     switch (_axis) {
       case Axis.horizontal:
         return constraints.constrain(Size(sizes.mainSize, sizes.crossSize));
       case Axis.vertical:
         return constraints.constrain(Size(sizes.crossSize, sizes.mainSize));
-    }*/
+    }
   }
 
   _LayoutSizes _computeSizes(
@@ -367,6 +385,28 @@ class RenderAxisLayout extends RenderBox
       }
     }
 
+    if (_antiAliasingBugWorkaround) {
+      final bool usedAll = totalUsedMainSize >= constraints.maxWidth;
+      totalUsedMainSize = 0;
+      for (int i = 0; i < children.length; i++) {
+        RenderBox child = children[i];
+        double newChildMainSize = _getMainSize(child.size);
+        if (i == children.length - 1) {
+          if (usedAll) {
+            newChildMainSize =
+                math.max(0, constraints.maxWidth - totalUsedMainSize);
+          } else {
+            newChildMainSize = newChildMainSize.roundToDouble();
+          }
+        } else {
+          newChildMainSize = newChildMainSize.roundToDouble();
+        }
+        _tightToNewMainSize(
+            child: child, size: newChildMainSize, layoutChild: layoutChild);
+        totalUsedMainSize += newChildMainSize;
+      }
+    }
+
     final double mainSize;
     if (_axis == Axis.horizontal) {
       mainSize = math.max(math.min(totalUsedMainSize, constraints.maxWidth),
@@ -441,8 +481,14 @@ class RenderAxisLayout extends RenderBox
         break;
     }
 
+    /*
+    if (_axis == Axis.horizontal) {
+      size = Size(sizes.mainSize, sizes.crossSize);
+    } else {
+      size = Size(sizes.crossSize, sizes.mainSize);
+    }*/
+
     final double actualSizeDelta = actualSize - usedSize;
-    //_overflow = math.max(0.0, -actualSizeDelta);
     final double remainingSpace = math.max(0.0, actualSizeDelta);
     late final double leadingSpace;
     late final double betweenSpace;
@@ -494,7 +540,6 @@ class RenderAxisLayout extends RenderBox
           childCrossPosition = 0.0;
           break;
       }
-
       switch (_axis) {
         case Axis.horizontal:
           childParentData.offset =
@@ -508,12 +553,6 @@ class RenderAxisLayout extends RenderBox
 
       childMainPosition += _getMainSize(child.size) + betweenSpace;
     }
-    /*
-    if (_axis == Axis.horizontal) {
-      size = Size(sizes.mainSize, sizes.crossSize);
-    } else {
-      size = Size(sizes.crossSize, sizes.mainSize);
-    }*/
   }
 
   @override
@@ -523,22 +562,16 @@ class RenderAxisLayout extends RenderBox
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    /*
-    if (!_hasOverflow) {
-      defaultPaint(context, offset);
-      return;
+    if (_antiAliasingBugWorkaround) {
+      offset = Offset(offset.dx.roundToDouble(), offset.dy.roundToDouble());
     }
-    */
-    // There's no point in drawing the children if we're empty.
     if (size.isEmpty) {
       return;
     }
-
     if (_clipBehavior == Clip.none) {
       _clipRectLayer.layer = null;
       defaultPaint(context, offset);
     } else {
-      // We have overflow and the clipBehavior isn't none. Clip it.
       _clipRectLayer.layer = context.pushClipRect(
         needsCompositing,
         offset,
@@ -561,8 +594,6 @@ class RenderAxisLayout extends RenderBox
 
   @override
   Rect? describeApproximatePaintClip(RenderObject child) => Offset.zero & size;
-  //Rect? describeApproximatePaintClip(RenderObject child) => _hasOverflow ? Offset.zero & size : null;
-
 }
 
 class _LayoutSizes {
