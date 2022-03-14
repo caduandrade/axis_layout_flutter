@@ -48,7 +48,7 @@ class AxisLayout extends MultiChildRenderObjectWidget {
   void updateRenderObject(
       BuildContext context, covariant RenderAxisLayout renderObject) {
     renderObject
-      ..direction = axis
+      ..axis = axis
       ..mainAlignment = mainAlignment
       ..crossAlignment = crossAlignment
       ..clipBehavior = clipBehavior
@@ -90,8 +90,7 @@ class RenderAxisLayout extends RenderBox
         _antiAliasingBugWorkaround = antiAliasingBugWorkaround;
 
   Axis _axis;
-  //TODO
-  set direction(Axis value) {
+  set axis(Axis value) {
     if (_axis != value) {
       _axis = value;
       markNeedsLayout();
@@ -386,21 +385,11 @@ class RenderAxisLayout extends RenderBox
     }
 
     if (_antiAliasingBugWorkaround) {
-      final bool usedAll = totalUsedMainSize >= constraints.maxWidth;
       totalUsedMainSize = 0;
       for (int i = 0; i < children.length; i++) {
         RenderBox child = children[i];
         double newChildMainSize = _getMainSize(child.size);
-        if (i == children.length - 1) {
-          if (usedAll) {
-            newChildMainSize =
-                math.max(0, constraints.maxWidth - totalUsedMainSize);
-          } else {
-            newChildMainSize = newChildMainSize.roundToDouble();
-          }
-        } else {
-          newChildMainSize = newChildMainSize.roundToDouble();
-        }
+        newChildMainSize = newChildMainSize.roundToDouble();
         _tightToNewMainSize(
             child: child, size: newChildMainSize, layoutChild: layoutChild);
         totalUsedMainSize += newChildMainSize;

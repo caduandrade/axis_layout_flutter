@@ -25,7 +25,6 @@ class LayoutWidgetState extends State<LayoutWidget> {
   double _mainSize = _maxMainSize;
 
   bool _scrollable = false;
-
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -36,7 +35,7 @@ class LayoutWidgetState extends State<LayoutWidget> {
               child: Row(children: [
                 const SizedBox(width: 16),
                 _clearButton(),
-                SizedBox(width: 32),
+                const SizedBox(width: 32),
                 const Text('Scrollable'),
                 _scrollCheck()
               ]),
@@ -87,6 +86,8 @@ class LayoutWidgetState extends State<LayoutWidget> {
       children: widget.children,
       mainAlignment: widget.settings.mainAlignment,
       crossAlignment: widget.settings.crossAlignment,
+      antiAliasingBugWorkaround: widget.settings.antiAliasingBugWorkaround,
+      clipBehavior: widget.settings.clip,
     );
   }
 

@@ -1,6 +1,6 @@
 name: axis_layout
-description: Horizontal (row) and vertical (column) layout with fill and shrink features.
-version: 0.3.0
+description: Horizontal (row) and vertical (column) layout with expand and shrink features.
+version: 1.0.0
 homepage: https://github.com/caduandrade/axis_layout_flutter
 
 environment:

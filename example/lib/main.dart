@@ -2,11 +2,11 @@ import 'package:axis_layout/axis_layout.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const AxisLayoutDemoApp());
+  runApp(const AxisLayoutExampleApp());
 }
 
-class AxisLayoutDemoApp extends StatelessWidget {
-  const AxisLayoutDemoApp({Key? key}) : super(key: key);
+class AxisLayoutExampleApp extends StatelessWidget {
+  const AxisLayoutExampleApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -63,18 +63,9 @@ class _HomePageState extends State<HomePage> {
       AxisLayoutChild(
           child: Container(width: 100, height: 50, color: Colors.blue),
           shrink: 1),
-      AxisLayoutChild(
-          child: Container(width: 100, height: 50, color: Colors.orange)),
+      Container(width: 100, height: 50, color: Colors.orange),
       AxisLayoutChild(
           child: Container(height: 50, color: Colors.green), expand: 1)
-    ]);
-  }
-
-  Widget _row() {
-    return Row(children: [
-      Container(width: 100, height: 50, color: Colors.blue),
-      Container(width: 100, height: 50, color: Colors.orange),
-      Expanded(child: Container(height: 50, color: Colors.green))
     ]);
   }
 }

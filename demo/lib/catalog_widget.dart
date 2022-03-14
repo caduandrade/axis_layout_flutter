@@ -15,6 +15,7 @@ class CatalogWidget extends StatefulWidget {
 
 class CatalogWidgetState extends State<CatalogWidget> {
   double _shrink = 0;
+  double _expand = 0;
   double _shrinkOrder = 0;
   final ScrollController _childrenScrollController = ScrollController();
   final ScrollController _settingsScrollController = ScrollController();
@@ -34,7 +35,9 @@ class CatalogWidgetState extends State<CatalogWidget> {
       _shrinkSlider(),
       ListTile(
           title: Text('Shrink order: ${_shrinkOrder.toInt()}'), dense: true),
-      _shrinkOrderSlider()
+      _shrinkOrderSlider(),
+      ListTile(title: Text('Expand: ${_expand.toInt()}'), dense: true),
+      _expandSlider()
     ];
 
     return Container(
@@ -78,7 +81,7 @@ class CatalogWidgetState extends State<CatalogWidget> {
 
   void _onChildTypeClick(ChildType childType) {
     Widget item = childType.buildForLayout(
-        shrink: _shrink, shrinkOrder: _shrinkOrder.toInt());
+        shrink: _shrink, shrinkOrder: _shrinkOrder.toInt(), expand: _expand);
     widget.onChildTypeClick(item);
   }
 
@@ -86,6 +89,26 @@ class CatalogWidgetState extends State<CatalogWidget> {
     return BoxDecoration(
         color: Colors.white,
         border: Border(left: BorderSide(color: Colors.grey[700]!, width: 2)));
+  }
+
+  Widget _expandSlider() {
+    return Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16),
+        child: Row(children: [
+          const Text('0'),
+          Expanded(
+              child: Slider(
+                  value: _expand,
+                  min: 0,
+                  max: 100,
+                  divisions: 20,
+                  onChanged: (value) {
+                    setState(() {
+                      _expand = value;
+                    });
+                  })),
+          const Text('100')
+        ]));
   }
 
   Widget _shrinkSlider() {

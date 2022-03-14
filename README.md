@@ -4,7 +4,41 @@
 
 ## Usage
 
+* [Horizontal](#horizontal)
+* [Vertical](#vertical)
+* [Shrink](#shrink)
+* [Expand](#expand)
 * [Support this project](#support-this-project)
+
+## Horizontal
+
+```dart
+AxisLayout(axis: Axis.horizontal, children: [child]);
+```
+
+## Vertical
+
+```dart
+AxisLayout(axis: Axis.vertical, children: [child]);
+```
+
+## Shrink
+
+```dart
+AxisLayout(axis: Axis.horizontal, children: [
+  AxisLayoutChild(child: child1, shrink: 1, shrinkOrder: 1),
+  child2,
+  AxisLayoutChild(child: child3, shrink: 1, shrinkOrder: 2)
+]);
+```
+
+## Expand
+
+```dart
+AxisLayout(
+  axis: Axis.horizontal,
+  children: [child1, AxisLayoutChild(child: child2, expand: 1)]);
+```
 
 ## Support this project
 

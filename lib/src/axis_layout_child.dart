@@ -13,9 +13,11 @@ class AxisLayoutChild extends ParentDataWidget<AxisLayoutParentData> {
     required Widget child,
   }) : super(key: key, child: child);
 
+  /// The expand weight
   final double expand;
 
-  /// 0 is no shrink and 1 is full shrink, zero as min size.
+  /// Value between 0 (no shrinkage) and 1 (full shrinkage) to indicate
+  /// the shrinkage fraction.
   final double shrink;
   final int shrinkOrder;
 

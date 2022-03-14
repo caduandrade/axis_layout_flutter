@@ -20,7 +20,7 @@ class LayoutSettingsWidgetState extends State<LayoutSettingsWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: 200,
+        width: 250,
         child: SingleChildScrollView(child: _menu()),
         decoration: BoxDecoration(
             color: Colors.white,
@@ -45,6 +45,20 @@ class LayoutSettingsWidgetState extends State<LayoutSettingsWidget> {
     for (CrossAlignment crossAlignment in CrossAlignment.values) {
       children.add(_crossAlignmentRadio(crossAlignment));
     }
+
+    children.add(const ListTile(title: Text('Clip Behavior'), dense: true));
+    for (Clip clip in Clip.values) {
+      children.add(_clipRadio(clip));
+    }
+
+    children.add(CheckboxListTile(
+        dense: true,
+        title: const Text('AntiAliasing Bug Workaround'),
+        value: widget.settings.antiAliasingBugWorkaround,
+        onChanged: (value) {
+          _notifySettingChange(
+              widget.settings.copyWith(antiAliasingBugWorkaround: value!));
+        }));
 
     return Column(children: children);
   }
@@ -84,6 +98,15 @@ class LayoutSettingsWidgetState extends State<LayoutSettingsWidget> {
         dense: true);
   }
 
+  Widget _clipRadio(Clip value) {
+    return RadioListTile<Clip>(
+        title: Text(value.name),
+        value: value,
+        groupValue: widget.settings.clip,
+        onChanged: _onClipChange,
+        dense: true);
+  }
+
   void _onAxisChange(Axis? value) {
     _notifySettingChange(widget.settings.copyWith(axis: value));
   }
@@ -94,6 +117,10 @@ class LayoutSettingsWidgetState extends State<LayoutSettingsWidget> {
 
   void _onCrossAlignmentChange(CrossAlignment? value) {
     _notifySettingChange(widget.settings.copyWith(crossAlignment: value));
+  }
+
+  void _onClipChange(Clip? value) {
+    _notifySettingChange(widget.settings.copyWith(clip: value));
   }
 
   void _notifySettingChange(LayoutSettings settings) {

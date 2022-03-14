@@ -26,12 +26,15 @@ class ChildType {
     return _build(true);
   }
 
-  Widget buildForLayout({required double shrink, required int shrinkOrder}) {
+  Widget buildForLayout(
+      {required double shrink,
+      required int shrinkOrder,
+      required double expand}) {
     return AxisLayoutChild(
         child: _build(false),
         shrink: shrink,
         shrinkOrder: shrinkOrder,
-        expand: type == 3 ? 1 : 0);
+        expand: expand);
   }
 
   static List<ChildType> types = [

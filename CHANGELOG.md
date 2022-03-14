@@ -1,3 +1,7 @@
+## 1.0.0
+
+* Workaround for Flutter's anti-aliasing issue as https://github.com/flutter/flutter/issues/14288
+
 ## 0.3.0
 
 * Fill feature replaced by expand feature

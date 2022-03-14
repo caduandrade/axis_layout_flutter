@@ -17,7 +17,9 @@ class _HomePageState extends State<HomePage> {
   LayoutSettings _settings = LayoutSettings(
       axis: Axis.horizontal,
       mainAlignment: MainAlignment.start,
-      crossAlignment: CrossAlignment.center);
+      crossAlignment: CrossAlignment.center,
+      antiAliasingBugWorkaround: false,
+      clip: Clip.none);
 
   @override
   Widget build(BuildContext context) {
