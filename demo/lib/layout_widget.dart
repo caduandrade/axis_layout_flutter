@@ -32,37 +32,38 @@ class LayoutWidgetState extends State<LayoutWidget> {
     List<Widget> children = [
       Center(
           child: Container(
+              padding: const EdgeInsets.only(top: 16),
               child: Row(children: [
                 const SizedBox(width: 16),
                 _clearButton(),
                 const SizedBox(width: 32),
                 const Text('Scrollable'),
                 _scrollCheck()
-              ]),
-              padding: const EdgeInsets.only(top: 16))),
+              ]))),
       Center(
           child: Padding(
-              child: SizedBox(width: _maxMainSize, child: _mainSizeSlider()),
-              padding: const EdgeInsets.only(top: 16, bottom: 16))),
+              padding: const EdgeInsets.only(top: 16, bottom: 16),
+              child: SizedBox(width: _maxMainSize, child: _mainSizeSlider()))),
       Expanded(child: _axisLayoutContainer())
     ];
 
     return Container(
+        color: Colors.white,
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
-        color: Colors.white);
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: children));
   }
 
   Widget _axisLayoutContainer() {
     Widget axisLayout = _axisLayout();
     if (_scrollable) {
       axisLayout = Scrollbar(
-          child: SingleChildScrollView(
-              child: axisLayout,
-              scrollDirection: widget.settings.axis,
-              controller: _scrollController),
           controller: _scrollController,
-          thumbVisibility: true);
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+              scrollDirection: widget.settings.axis,
+              controller: _scrollController,
+              child: axisLayout));
     }
 
     if (widget.settings.axis == Axis.horizontal) {
@@ -75,19 +76,19 @@ class LayoutWidgetState extends State<LayoutWidget> {
         child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 400),
             child: Container(
-                child: axisLayout,
                 decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black, width: 8)))));
+                    border: Border.all(color: Colors.black, width: 8)),
+                child: axisLayout)));
   }
 
   Widget _axisLayout() {
     return AxisLayout(
       axis: widget.settings.axis,
-      children: widget.children,
       mainAlignment: widget.settings.mainAlignment,
       crossAlignment: widget.settings.crossAlignment,
       antiAliasingBugWorkaround: widget.settings.antiAliasingBugWorkaround,
       clipBehavior: widget.settings.clip,
+      children: widget.children,
     );
   }
 

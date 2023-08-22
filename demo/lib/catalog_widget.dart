@@ -23,8 +23,8 @@ class CatalogWidgetState extends State<CatalogWidget> {
   @override
   Widget build(BuildContext context) {
     return Row(
-        children: [_childrenList(context), _settings(context)],
-        crossAxisAlignment: CrossAxisAlignment.stretch);
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [_childrenList(context), _settings(context)]);
   }
 
   Widget _settings(BuildContext context) {
@@ -42,12 +42,12 @@ class CatalogWidgetState extends State<CatalogWidget> {
 
     return Container(
         width: 200,
+        decoration: _decoration(),
         child: SingleChildScrollView(
             controller: _settingsScrollController,
             child: Column(
-                children: children,
-                crossAxisAlignment: CrossAxisAlignment.stretch)),
-        decoration: _decoration());
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: children)));
   }
 
   Widget _childrenList(BuildContext context) {
@@ -57,11 +57,11 @@ class CatalogWidgetState extends State<CatalogWidget> {
     }
     return Container(
         width: 250,
+        decoration: _decoration(),
         child: SingleChildScrollView(
           controller: _childrenScrollController,
           child: Column(children: children),
-        ),
-        decoration: _decoration());
+        ));
   }
 
   Widget _childItem(ChildType childType) {
@@ -69,13 +69,15 @@ class CatalogWidgetState extends State<CatalogWidget> {
     return Material(
         child: InkWell(
             child: Padding(
-                child: Row(children: [
-                  childType.buildForCatalog(),
-                  const SizedBox(width: 16),
-                  Text(
-                      'minW: ${constraints.minWidth}\nmaxW: ${constraints.maxWidth}\nminH: ${constraints.minHeight}\nmaxH: ${constraints.maxHeight}')
-                ], crossAxisAlignment: CrossAxisAlignment.center),
-                padding: const EdgeInsets.all(8)),
+                padding: const EdgeInsets.all(8),
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      childType.buildForCatalog(),
+                      const SizedBox(width: 16),
+                      Text(
+                          'minW: ${constraints.minWidth}\nmaxW: ${constraints.maxWidth}\nminH: ${constraints.minHeight}\nmaxH: ${constraints.maxHeight}')
+                    ])),
             onTap: () => _onChildTypeClick(childType)));
   }
 

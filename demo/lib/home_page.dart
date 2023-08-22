@@ -1,8 +1,8 @@
 import 'package:axis_layout/axis_layout.dart';
 import 'package:demo/catalog_widget.dart';
-import 'package:demo/layout_widget.dart';
 import 'package:demo/layout_settings.dart';
 import 'package:demo/layout_settings_widget.dart';
+import 'package:demo/layout_widget.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -33,14 +33,14 @@ class _HomePageState extends State<HomePage> {
   Widget _body(BuildContext context) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      return Row(children: [
+      return Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         LayoutSettingsWidget(
             settings: _settings, onSettingsChange: _onSettingsChange),
         Expanded(
             child: LayoutWidget(
-                children: _children, settings: _settings, onClear: _onClear)),
+                settings: _settings, onClear: _onClear, children: _children)),
         CatalogWidget(onChildTypeClick: _onChildTypeClick)
-      ], crossAxisAlignment: CrossAxisAlignment.stretch);
+      ]);
     });
   }
 

@@ -21,11 +21,11 @@ class LayoutSettingsWidgetState extends State<LayoutSettingsWidget> {
   Widget build(BuildContext context) {
     return Container(
         width: 250,
-        child: SingleChildScrollView(child: _menu()),
         decoration: BoxDecoration(
             color: Colors.white,
             border:
-                Border(right: BorderSide(color: Colors.grey[700]!, width: 2))));
+                Border(right: BorderSide(color: Colors.grey[700]!, width: 2))),
+        child: SingleChildScrollView(child: _menu()));
   }
 
   Widget _menu() {
