@@ -1,5 +1,6 @@
-import 'package:demo/child_types.dart';
 import 'package:flutter/material.dart';
+
+import 'child_types.dart';
 
 typedef OnChildTypeClick = void Function(Widget child);
 

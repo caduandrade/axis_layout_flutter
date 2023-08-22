@@ -1,5 +1,5 @@
 import 'package:axis_layout/axis_layout.dart';
-import 'package:demo/layout_settings.dart';
+import 'layout_settings.dart';
 import 'package:flutter/material.dart';
 
 typedef OnLayoutSettingsChange = void Function(LayoutSettings settings);

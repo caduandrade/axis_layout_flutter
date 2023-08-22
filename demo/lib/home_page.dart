@@ -1,8 +1,8 @@
 import 'package:axis_layout/axis_layout.dart';
-import 'package:demo/catalog_widget.dart';
-import 'package:demo/layout_settings.dart';
-import 'package:demo/layout_settings_widget.dart';
-import 'package:demo/layout_widget.dart';
+import 'catalog_widget.dart';
+import 'layout_settings.dart';
+import 'layout_settings_widget.dart';
+import 'layout_widget.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {

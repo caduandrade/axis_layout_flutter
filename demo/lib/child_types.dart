@@ -31,10 +31,10 @@ class ChildType {
       required int shrinkOrder,
       required double expand}) {
     return AxisLayoutChild(
-        child: _build(false),
         shrink: shrink,
         shrinkOrder: shrinkOrder,
-        expand: expand);
+        expand: expand,
+        child: _build(false));
   }
 
   static List<ChildType> types = [
