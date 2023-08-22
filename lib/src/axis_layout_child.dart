@@ -1,7 +1,7 @@
 import 'dart:math' as math;
+
 import 'package:axis_layout/src/axis_layout.dart';
 import 'package:axis_layout/src/parent_data.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class AxisLayoutChild extends ParentDataWidget<AxisLayoutParentData> {

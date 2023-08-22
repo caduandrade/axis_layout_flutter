@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:axis_layout/src/cross_alignment.dart';
 import 'package:axis_layout/src/main_alignment.dart';
 import 'package:axis_layout/src/parent_data.dart';
@@ -9,7 +10,7 @@ import 'package:flutter/widgets.dart';
 ///
 /// Inspired by [Flex],[Row] and [Column] Flutter layouts.
 class AxisLayout extends MultiChildRenderObjectWidget {
-  AxisLayout(
+  const AxisLayout(
       {Key? key,
       required this.axis,
       required List<Widget> children,
@@ -90,6 +91,7 @@ class RenderAxisLayout extends RenderBox
         _antiAliasingBugWorkaround = antiAliasingBugWorkaround;
 
   Axis _axis;
+
   set axis(Axis value) {
     if (_axis != value) {
       _axis = value;
@@ -98,6 +100,7 @@ class RenderAxisLayout extends RenderBox
   }
 
   MainAlignment _mainAlignment;
+
   set mainAlignment(MainAlignment value) {
     if (_mainAlignment != value) {
       _mainAlignment = value;
@@ -106,6 +109,7 @@ class RenderAxisLayout extends RenderBox
   }
 
   CrossAlignment _crossAlignment;
+
   set crossAlignment(CrossAlignment value) {
     if (_crossAlignment != value) {
       _crossAlignment = value;
@@ -114,6 +118,7 @@ class RenderAxisLayout extends RenderBox
   }
 
   bool _antiAliasingBugWorkaround;
+
   set antiAliasingBugWorkaround(bool value) {
     if (_antiAliasingBugWorkaround != value) {
       _antiAliasingBugWorkaround = value;
@@ -125,6 +130,7 @@ class RenderAxisLayout extends RenderBox
   ///
   /// Defaults to [Clip.none], and must not be null.
   Clip _clipBehavior = Clip.none;
+
   set clipBehavior(Clip value) {
     if (value != _clipBehavior) {
       _clipBehavior = value;
