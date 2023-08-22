@@ -25,7 +25,7 @@ class AxisLayoutChild extends ParentDataWidget<AxisLayoutParentData> {
   void applyParentData(RenderObject renderObject) {
     assert(renderObject.parentData is AxisLayoutParentData);
     final AxisLayoutParentData parentData =
-    renderObject.parentData! as AxisLayoutParentData;
+        renderObject.parentData! as AxisLayoutParentData;
     bool needsLayout = false;
 
     if (parentData.expand != expand) {
@@ -46,9 +46,7 @@ class AxisLayoutChild extends ParentDataWidget<AxisLayoutParentData> {
 
     if (needsLayout) {
       final RenderObject? targetParent = renderObject.parent;
-      if (targetParent is RenderObject) {
-        targetParent.markNeedsLayout();
-      }
+      targetParent?.markNeedsLayout();
     }
   }
 

@@ -62,7 +62,7 @@ class LayoutWidgetState extends State<LayoutWidget> {
               scrollDirection: widget.settings.axis,
               controller: _scrollController),
           controller: _scrollController,
-          isAlwaysShown: true);
+          thumbVisibility: true);
     }
 
     if (widget.settings.axis == Axis.horizontal) {
